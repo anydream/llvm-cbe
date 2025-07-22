@@ -70,14 +70,17 @@ If you used your distribution's package, put it wherever you feel like:
     build$ cmake -S .. -G "Ninja"
     build$ ninja llvm-cbe
 ```
-*On Windows, build with MSVC:*
+**On Windows, build with MSVC:**
 - Compile with clang+VS:
-    - Add `LLVM_v143` to `-T` input box and configure CMake
+    - Add `LLVM_v143` to `-T` input box and run CMake `Configure`
 - After CMake configured, search `_RELEASE`, replace `/MD` to `/MT`
+- Run CMake `Generate`
+- Copy finded `diaguids.lib` into `./build/tools/llvm-cbe/`
 - Run `x64 Native Tools Command Prompt for VS`, `cd` into build directory and compile:
     ```batch
     msbuild /p:Configuration=Release llvm-cbe.sln
-    ``` 
+    ```
+- `./build/tools/llvm-cbe/Release/llvm-cbe.exe` is generated
 
 Step 3: Usage Examples
 ======================
