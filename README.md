@@ -70,6 +70,15 @@ If you used your distribution's package, put it wherever you feel like:
     build$ cmake -S .. -G "Ninja"
     build$ ninja llvm-cbe
 ```
+*On Windows, build with MSVC:*
+- Compile with clang+VS:
+    - Add `LLVM_v143` to `-T` input box and configure CMake
+- After CMake configured, search `_RELEASE`, replace `/MD` to `/MT`
+- Run `x64 Native Tools Command Prompt for VS`, `cd` into build directory and compile:
+    ```batch
+    msbuild /p:Configuration=Release llvm-cbe.sln
+    ``` 
+
 Step 3: Usage Examples
 ======================
 
