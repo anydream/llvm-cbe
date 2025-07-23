@@ -2463,11 +2463,20 @@ void CWriter::generateHeader(Module &M) {
     OutHeaders << "#include <limits.h>\n";
   // Support for integers with explicit sizes. This one isn't conditional
   // because virtually all CBE output will use it.
-  OutHeaders << "#include <stdint.h>\n"; // Sized integer support
+  //OutHeaders << "#include <stdint.h>\n"; // Sized integer support
   if (headerIncMath())
     OutHeaders << "#include <math.h>\n";
+
+  OutHeaders << "typedef signed char        int8_t;\n";
+  OutHeaders << "typedef short              int16_t;\n";
+  OutHeaders << "typedef int                int32_t;\n";
+  OutHeaders << "typedef long long          int64_t;\n";
+  OutHeaders << "typedef unsigned char      uint8_t;\n";
+  OutHeaders << "typedef unsigned short     uint16_t;\n";
+  OutHeaders << "typedef unsigned int       uint32_t;\n";
+  OutHeaders << "typedef unsigned long long uint64_t;\n";
   // Provide a definition for `bool' if not compiling with a C++ compiler.
-  OutHeaders << "#ifndef __cplusplus\ntypedef unsigned char bool;\n#endif\n";
+  OutHeaders << "#ifndef __cplusplus\ntypedef _Bool bool;\n#endif\n";
   OutHeaders << "\n";
 
   Out << "\n\n/* Global Declarations */\n";
