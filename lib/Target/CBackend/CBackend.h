@@ -276,6 +276,7 @@ private:
   void printConstantDataSequential(ConstantDataSequential *CDS,
                                    enum OperandContext Context);
   bool printConstantString(Constant *C, enum OperandContext Context);
+  bool printOperandString(ConstantDataSequential *CDS);
 
   bool isEmptyType(Type *Ty) const;
   Type *skipEmptyArrayTypes(Type *Ty) const;

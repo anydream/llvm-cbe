@@ -1015,6 +1015,84 @@ bool CWriter::printConstantString(Constant *C, enum OperandContext Context) {
   return true;
 }
 
+bool CWriter::printOperandString(ConstantDataSequential *CDS)
+{
+  // As a special case, print the array as a string if it is an array of
+  // ubytes or an array of sbytes with positive values.
+  if (!CDS || !CDS->isString())
+    return false;
+
+  Out << "\"";
+  // Keep track of whether the last number was a hexadecimal escape.
+  bool LastWasHex = false;
+
+  StringRef Bytes = CDS->getAsString();
+
+  unsigned length = Bytes.size();
+  // We can skip the last character only if it is an implied null.
+  // Beware: C does not force character (i.e. (u)int8_t here) arrays to have a
+  // null terminator, but if the length is not specified it will imply one!
+  if (length >= 1 && Bytes[length - 1] == '\0')
+    length--;
+
+  for (unsigned i = 0; i < length; ++i)
+  {
+    unsigned char C = Bytes[i];
+
+    // Print it out literally if it is a printable character.  The only thing
+    // to be careful about is when the last letter output was a hex escape
+    // code, in which case we have to be careful not to print out hex digits
+    // explicitly (the C compiler thinks it is a continuation of the previous
+    // character, sheesh...)
+    if (isprint(C) && (!LastWasHex || !isxdigit(C)))
+    {
+      LastWasHex = false;
+      if (C == '"' || C == '\\')
+        Out << "\\" << (char)C;
+      else
+        Out << (char)C;
+    }
+    else
+    {
+      LastWasHex = false;
+      switch (C)
+      {
+      case '\n':
+        Out << "\\n";
+        break;
+      case '\t':
+        Out << "\\t";
+        break;
+      case '\r':
+        Out << "\\r";
+        break;
+      case '\v':
+        Out << "\\v";
+        break;
+      case '\a':
+        Out << "\\a";
+        break;
+      case '\"':
+        Out << "\\\"";
+        break;
+      case '\'':
+        Out << "\\\'";
+        break;
+      default:
+        Out << "\\x";
+        Out << (char)((C / 16 < 10) ? (C / 16 + '0') : (C / 16 - 10 + 'A'));
+        Out << (char)(((C & 15) < 10)
+                        ? ((C & 15) + '0')
+                        : ((C & 15) - 10 + 'A'));
+        LastWasHex = true;
+        break;
+      }
+    }
+  }
+  Out << "\"";
+  return true;
+}
+
 // isFPCSafeToPrint - Returns true if we may assume that CFP may be written out
 // textually as a double (rather than as a reference to a stack-allocated
 // variable). We decide this by converting CFP to a string and back into a
@@ -1753,6 +1831,19 @@ void CWriter::writeOperandInternal(Value *Operand,
 }
 
 void CWriter::writeOperand(Value *Operand, enum OperandContext Context) {
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Operand))
+  {
+    if (Constant *CI = GV->getInitializer())
+    {
+      // Constant string expand
+      if (ConstantDataSequential *CDS = dyn_cast<ConstantDataSequential>(CI))
+      {
+        if (printOperandString(CDS))
+          return;
+      }
+    }
+  }
+
   std::optional<Type *> InnerType = tryGetTypeOfAddressExposedValue(Operand);
   bool isAddressImplicit = InnerType.has_value();
   // Global variables are referenced as their addresses by llvm
