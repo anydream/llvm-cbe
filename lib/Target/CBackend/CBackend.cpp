@@ -2475,6 +2475,14 @@ void CWriter::generateHeader(Module &M) {
   OutHeaders << "typedef unsigned short     uint16_t;\n";
   OutHeaders << "typedef unsigned int       uint32_t;\n";
   OutHeaders << "typedef unsigned long long uint64_t;\n";
+  OutHeaders << "#define INT8_C(x)          (int8_t)(x)\n";
+  OutHeaders << "#define INT16_C(x)         (int16_t)(x)\n";
+  OutHeaders << "#define INT32_C(x)         (int32_t)(x)\n";
+  OutHeaders << "#define INT64_C(x)         (int64_t)(x ## LL)\n";
+  OutHeaders << "#define UINT8_C(x)         (uint8_t)(x)\n";
+  OutHeaders << "#define UINT16_C(x)        (uint16_t)(x)\n";
+  OutHeaders << "#define UINT32_C(x)        (uint32_t)(x ## U)\n";
+  OutHeaders << "#define UINT64_C(x)        (uint64_t)(x ## ULL)\n";
   // Provide a definition for `bool' if not compiling with a C++ compiler.
   OutHeaders << "#ifndef __cplusplus\ntypedef _Bool bool;\n#endif\n";
   OutHeaders << "\n";
@@ -4771,7 +4779,11 @@ void CWriter::printIntrinsicDefinition(FunctionType *funT, unsigned Opcode,
       Out << "      r++;\n";
 
 #else
-      if (elemT->getIntegerBitWidth() <= 32)
+      if (elemT->getIntegerBitWidth() <= 8)
+          Out << "  r = (uint8_t)__builtin_popcount((uint32_t)a);\n";
+      else if (elemT->getIntegerBitWidth() <= 16)
+          Out << "  r = (uint16_t)__builtin_popcount((uint32_t)a);\n";
+      else if (elemT->getIntegerBitWidth() <= 32)
           Out << "  r = __builtin_popcount(a);\n";
       else
           Out << "  r = __builtin_popcountll(a);\n";
