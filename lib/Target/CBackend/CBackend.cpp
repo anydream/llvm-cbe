@@ -4742,17 +4742,27 @@ void CWriter::printIntrinsicDefinition(FunctionType *funT, unsigned Opcode,
       cwriter_assert(retT == elemT);
       cwriter_assert(!isa<VectorType>(retT));
       cwriter_assert(elemT->getIntegerBitWidth() <= 64);
+#if 1
       Out << "  int i;\n";
       Out << "  r = 0;\n";
       Out << "  int bitwidth = " << elemT->getIntegerBitWidth() << ";\n";
       Out << "  for (i = 0; i < bitwidth/8; i++)\n";
       Out << "    r |= ((a >> (i*8)) & 0xff) << (bitwidth - (i+1)*8);\n";
+
+#else
+      if (elemT->getIntegerBitWidth() <= 32)
+          Out << "  r = __builtin_bswap32(a);\n";
+      else
+          Out << "  r = __builtin_bswap64(a);\n";
+#endif
+
       break;
 
     case Intrinsic::ctpop:
       cwriter_assert(retT == elemT);
       cwriter_assert(!isa<VectorType>(retT));
       cwriter_assert(elemT->getIntegerBitWidth() <= 64);
+#if 0
       Out << "  int i;\n";
       Out << "  r = 0;\n";
       Out << "  int bitwidth = " << elemT->getIntegerBitWidth() << ";\n";
@@ -4760,12 +4770,20 @@ void CWriter::printIntrinsicDefinition(FunctionType *funT, unsigned Opcode,
       Out << "    if ( (a >> i ) & 1 )\n";
       Out << "      r++;\n";
 
+#else
+      if (elemT->getIntegerBitWidth() <= 32)
+          Out << "  r = __builtin_popcount(a);\n";
+      else
+          Out << "  r = __builtin_popcountll(a);\n";
+#endif
+
       break;
 
     case Intrinsic::ctlz:
       cwriter_assert(retT == elemT);
       cwriter_assert(!isa<VectorType>(retT));
       cwriter_assert(elemT->getIntegerBitWidth() <= 64);
+#if 1
       Out << "  int i;\n";
       Out << "  r = 0;\n";
       Out << "  int bitwidth = " << elemT->getIntegerBitWidth() << ";\n";
@@ -4774,12 +4792,21 @@ void CWriter::printIntrinsicDefinition(FunctionType *funT, unsigned Opcode,
       Out << "      r++;\n";
       Out << "    else\n";
       Out << "      break;\n";
+
+#else
+      if (elemT->getIntegerBitWidth() <= 32)
+          Out << "  r = __builtin_clz(a);\n";
+      else
+          Out << "  r = __builtin_clzll(a);\n";
+#endif
+
       break;
 
     case Intrinsic::cttz:
       cwriter_assert(retT == elemT);
       cwriter_assert(!isa<VectorType>(retT));
       cwriter_assert(elemT->getIntegerBitWidth() <= 64);
+#if 1
       Out << "  int i;\n";
       Out << "  r = 0;\n";
       Out << "  int bitwidth = " << elemT->getIntegerBitWidth() << ";\n";
@@ -4788,6 +4815,14 @@ void CWriter::printIntrinsicDefinition(FunctionType *funT, unsigned Opcode,
       Out << "      r++;\n";
       Out << "    else\n";
       Out << "      break;\n";
+
+#else
+      if (elemT->getIntegerBitWidth() <= 32)
+          Out << "  r = __builtin_ctz(a);\n";
+      else
+          Out << "  r = __builtin_ctzll(a);\n";
+#endif
+
       break;
 
     case Intrinsic::umax:
