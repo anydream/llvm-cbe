@@ -48,6 +48,8 @@
 #define DBG_ERRS(x)
 #endif
 
+//#pragma optimize("", off)
+
 namespace llvm_cbe {
 
 using namespace llvm;
@@ -571,7 +573,7 @@ raw_ostream &
 CWriter::printTypeName(raw_ostream &Out, Type *Ty, bool isSigned,
                        std::pair<AttributeList, CallingConv::ID> PAL) {
   if (!Ty)
-    return Out << "void";
+    return Out << "/*ERR*/void";
 
   if (Ty->isSingleValueType() || Ty->isVoidTy()) {
     if (!Ty->isPointerTy() && !Ty->isVectorTy())
@@ -782,13 +784,14 @@ raw_ostream &CWriter::printFunctionProto(raw_ostream &Out,
     Out << "__noreturn ";
   }
 
-  bool isStructReturn = false;
+  const bool isStructReturn = false;
   if (shouldFixMain) {
     Out << MainArgs.begin()[0].first;
   } else {
     // Should this function actually return a struct by-value?
     //isStructReturn = PAL.hasAttributeAtIndex(1, Attribute::StructRet) ||
     //                 PAL.hasAttributeAtIndex(2, Attribute::StructRet);
+
     // Get the return type for the function.
     Type *RetTy;
     if (!isStructReturn)
@@ -3829,7 +3832,8 @@ bool CWriter::canDeclareLocalLate(Instruction &I) {
 
 void CWriter::printFunction(Function &F) {
   /// isStructReturn - Should this function actually return a struct by-value?
-  bool isStructReturn = F.hasStructRetAttr();
+  //bool isStructReturn = F.hasStructRetAttr();
+  const bool isStructReturn = false;
 
   cwriter_assert(!F.isDeclaration());
   if (F.hasDLLImportStorageClass())
@@ -4029,13 +4033,26 @@ void CWriter::printBasicBlock(BasicBlock *BB) {
   visit(*BB->getTerminator());
 }
 
+void CWriter::visitFreezeInst(FreezeInst &I)
+{
+  CurInstr = &I;
+
+  Out << "/*freeze*/(";
+  if (I.getNumOperands())
+  {
+    writeOperand(I.getOperand(0), ContextCasted);
+  }
+  Out << ");\n";
+}
+
 // Specific Instruction type classes... note that all of the casts are
 // necessary because we use the instruction classes as opaque types...
 void CWriter::visitReturnInst(ReturnInst &I) {
   CurInstr = &I;
 
   // If this is a struct return function, return the temporary struct.
-  bool isStructReturn = I.getParent()->getParent()->hasStructRetAttr();
+  //bool isStructReturn = I.getParent()->getParent()->hasStructRetAttr();
+  const bool isStructReturn = false;
 
   if (isStructReturn) {
     Out << "  return StructReturn;\n";
@@ -6001,7 +6018,7 @@ void CWriter::visitExtractValueInst(ExtractValueInst &EVI) {
 }
 
 [[noreturn]] void CWriter::errorWithMessage(const char *message) {
-#ifndef NDEBUG
+#if 1
   errs() << message;
   errs() << " in: ";
   if (CurInstr != nullptr) {

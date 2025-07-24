@@ -288,6 +288,7 @@ private:
   // Instruction visitation functions
   friend class InstVisitor<CWriter>;
 
+  void visitFreezeInst(FreezeInst &I);
   void visitReturnInst(ReturnInst &I);
   void visitBranchInst(BranchInst &I);
   void visitSwitchInst(SwitchInst &I);
