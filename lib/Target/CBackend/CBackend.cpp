@@ -570,6 +570,9 @@ raw_ostream &CWriter::printTypeNameForAddressableValue(raw_ostream &Out,
 raw_ostream &
 CWriter::printTypeName(raw_ostream &Out, Type *Ty, bool isSigned,
                        std::pair<AttributeList, CallingConv::ID> PAL) {
+  if (!Ty)
+    return Out << "void";
+
   if (Ty->isSingleValueType() || Ty->isVoidTy()) {
     if (!Ty->isPointerTy() && !Ty->isVectorTy())
       return printSimpleType(Out, Ty, isSigned);
@@ -784,8 +787,8 @@ raw_ostream &CWriter::printFunctionProto(raw_ostream &Out,
     Out << MainArgs.begin()[0].first;
   } else {
     // Should this function actually return a struct by-value?
-    isStructReturn = PAL.hasAttributeAtIndex(1, Attribute::StructRet) ||
-                     PAL.hasAttributeAtIndex(2, Attribute::StructRet);
+    //isStructReturn = PAL.hasAttributeAtIndex(1, Attribute::StructRet) ||
+    //                 PAL.hasAttributeAtIndex(2, Attribute::StructRet);
     // Get the return type for the function.
     Type *RetTy;
     if (!isStructReturn)
